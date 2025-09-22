@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import type { VideoBreakpoint } from '$lib/types';
+	import PlaybackSpeedSlider from './PlaybackSpeedSlider.svelte';
 
 	interface Props {
 		videoPath: string;
@@ -31,6 +32,7 @@
 
 	// UI state
 	let showControls = $state(true);
+	let showSpeedControl = $state(false);
 	let controlsTimeout: number;
 	let isSeeking = $state(false);
 	let hoverTime = $state<number | null>(null);
@@ -103,6 +105,8 @@
 		document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
 		document.addEventListener('mousemove', handleGlobalMouseMove);
 		document.addEventListener('mouseup', handleGlobalMouseUp);
+		document.addEventListener('click', handleDocumentClick);
+		document.addEventListener('keydown', handleKeydown);
 
 		return () => {
 			if (animationFrameId) {
@@ -112,6 +116,8 @@
 			document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
 			document.removeEventListener('mousemove', handleGlobalMouseMove);
 			document.removeEventListener('mouseup', handleGlobalMouseUp);
+			document.removeEventListener('click', handleDocumentClick);
+			document.removeEventListener('keydown', handleKeydown);
 		};
 	});
 
@@ -319,11 +325,56 @@
 
 	// Format time helper
 	function formatTime(seconds: number): string {
-		if (isNaN(seconds)) return '0:00';
+		if (isNaN(seconds)) return '0:00.000';
 
 		const minutes = Math.floor(seconds / 60);
 		const remainingSeconds = Math.floor(seconds % 60);
-		return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+		const milliseconds = Math.floor((seconds % 1) * 1000);
+		return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
+	}
+
+	// Handle playback speed change
+	function handleSpeedChange(newSpeed: number) {
+		playbackRate = newSpeed;
+		if (videoElement) {
+			videoElement.playbackRate = newSpeed;
+		}
+	}
+
+	// Toggle speed control visibility
+	function toggleSpeedControl(event: MouseEvent) {
+		event.stopPropagation();
+		showSpeedControl = !showSpeedControl;
+	}
+
+	// Quick speed adjustment
+	function adjustSpeed(delta: number) {
+		const newSpeed = Math.max(0.25, Math.min(3.0, playbackRate + delta));
+		// Round to nearest 0.05 for smoother control
+		const roundedSpeed = Math.round(newSpeed * 20) / 20;
+		handleSpeedChange(roundedSpeed);
+	}
+
+	// Close speed control when clicking outside
+	function handleDocumentClick(event: MouseEvent) {
+		if (!showSpeedControl) return;
+
+		const target = event.target as Element;
+		const speedControlElement = document.querySelector('.speed-control-overlay');
+		const speedButton = document.querySelector('.speed-control-button');
+
+		if (speedControlElement && speedButton) {
+			if (!speedControlElement.contains(target) && !speedButton.contains(target)) {
+				showSpeedControl = false;
+			}
+		}
+	}
+
+	// Close speed control on escape key
+	function handleKeydown(event: KeyboardEvent) {
+		if (event.key === 'Escape' && showSpeedControl) {
+			showSpeedControl = false;
+		}
 	}
 
 	// Mouse control handlers
@@ -573,17 +624,60 @@
 				</div>
 			</div>
 
-			<!-- Time info -->
+			<!-- Time info and controls -->
 			<div style="display: flex; justify-content: space-between; align-items: center; color: rgba(255, 255, 255, 0.8); font-size: 14px;">
 				<div style="font-family: monospace;">
 					{formatTime(currentTime)} / {formatTime(duration)}
 				</div>
-				<div style="font-size: 12px;">
-					{#if playbackRate !== 1}
-						{playbackRate}× speed
-					{/if}
+				<div style="display: flex; align-items: center; gap: 4px;">
+					<!-- Decrease speed arrow -->
+					<button
+						style="background: rgba(187, 134, 252, 0.1); border: 1px solid rgba(187, 134, 252, 0.3); color: #bb86fc; padding: 4px 6px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;"
+						on:mouseenter={(e) => e.target.style.background = 'rgba(187, 134, 252, 0.2)'}
+						on:mouseleave={(e) => e.target.style.background = 'rgba(187, 134, 252, 0.1)'}
+						on:click={() => adjustSpeed(-0.25)}
+						title="Decrease speed"
+					>
+						<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<polyline points="15,18 9,12 15,6"></polyline>
+						</svg>
+					</button>
+
+					<!-- Speed display button -->
+					<button
+						class="speed-control-button"
+						style="background: rgba(187, 134, 252, 0.1); border: 1px solid rgba(187, 134, 252, 0.3); color: #bb86fc; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: all 0.2s ease; min-width: 48px;"
+						on:mouseenter={(e) => e.target.style.background = 'rgba(187, 134, 252, 0.2)'}
+						on:mouseleave={(e) => e.target.style.background = 'rgba(187, 134, 252, 0.1)'}
+						on:click={toggleSpeedControl}
+					>
+						{playbackRate.toFixed(2)}×
+					</button>
+
+					<!-- Increase speed arrow -->
+					<button
+						style="background: rgba(187, 134, 252, 0.1); border: 1px solid rgba(187, 134, 252, 0.3); color: #bb86fc; padding: 4px 6px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;"
+						on:mouseenter={(e) => e.target.style.background = 'rgba(187, 134, 252, 0.2)'}
+						on:mouseleave={(e) => e.target.style.background = 'rgba(187, 134, 252, 0.1)'}
+						on:click={() => adjustSpeed(0.25)}
+						title="Increase speed"
+					>
+						<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<polyline points="9,18 15,12 9,6"></polyline>
+						</svg>
+					</button>
 				</div>
 			</div>
+
+			<!-- Speed Control Overlay -->
+			{#if showSpeedControl}
+				<div class="speed-control-overlay" style="position: absolute; bottom: 100%; right: 0; margin-bottom: 8px; z-index: 10000;" on:click={(e) => e.stopPropagation()}>
+					<PlaybackSpeedSlider
+						{playbackRate}
+						onSpeedChange={handleSpeedChange}
+					/>
+				</div>
+			{/if}
 		</div>
 	</div>
 </div>
