@@ -2,14 +2,16 @@
 	import { onMount, onDestroy } from 'svelte';
 	import type { VideoBreakpoint } from '$lib/types';
 	import PlaybackSpeedSlider from './PlaybackSpeedSlider.svelte';
+	import { updateVideoTime, updateVideoDuration, videoState } from '$lib/stores/video-notes.svelte.ts';
 
 	interface Props {
 		videoPath: string;
 		breakpoints?: VideoBreakpoint[];
 		autoPlay?: boolean;
+		enableNotesSync?: boolean;
 	}
 
-	let { videoPath, breakpoints = [], autoPlay = false }: Props = $props();
+	let { videoPath, breakpoints = [], autoPlay = false, enableNotesSync = false }: Props = $props();
 
 	// Video element reference
 	let videoElement: HTMLVideoElement;
@@ -43,6 +45,18 @@
 	// Animation frame for smooth updates
 	let animationFrameId: number;
 
+	// Watch for seek requests from notes
+	$effect(() => {
+		if (enableNotesSync && videoState.seekToTime !== null && videoElement) {
+			const targetTime = videoState.seekToTime;
+			// Seek to the requested time
+			videoElement.currentTime = targetTime;
+			currentTime = targetTime;
+			// Clear the seek request
+			videoState.seekToTime = null;
+		}
+	});
+
 	// Initialize video when component mounts
 	onMount(() => {
 		if (videoElement) {
@@ -61,7 +75,14 @@
 		// Update time smoothly
 		const updateTime = () => {
 			if (videoElement && !isSeeking) {
-				currentTime = videoElement.currentTime;
+				const newTime = videoElement.currentTime;
+				if (newTime !== currentTime) {
+					currentTime = newTime;
+					// Update the store if notes sync is enabled
+					if (enableNotesSync) {
+						updateVideoTime(currentTime);
+					}
+				}
 
 				// Check for breakpoints
 				checkBreakpoints();
@@ -150,6 +171,10 @@
 	function handleLoadedMetadata() {
 		if (videoElement) {
 			duration = videoElement.duration;
+			// Update the store if notes sync is enabled
+			if (enableNotesSync) {
+				updateVideoDuration(duration);
+			}
 			// Initialize loop segment to full video
 			if (!loopSegment && duration > 0) {
 				loopSegment = { start: 0, end: duration };
@@ -519,8 +544,7 @@
 </script>
 
 <div
-	class="local-video-player relative bg-black rounded-xl overflow-hidden shadow-2xl mx-auto"
-	style="width: 50vw;"
+	class="local-video-player relative bg-black rounded-xl overflow-hidden shadow-2xl w-full max-w-full"
 	bind:this={containerElement}
 	on:mousemove={showControlsTemporary}
 	on:keydown={handleKeyDown}

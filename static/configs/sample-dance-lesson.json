@@ -1,0 +1,169 @@
+{
+  "videoId": "sample-bachata-basic",
+  "title": "Bachata Basic Steps - Beginner Tutorial",
+  "videoPath": "/videos/testvideo.mp4",
+  "leaderNotes": [
+    {
+      "id": "leader-1",
+      "startTime": 0,
+      "endTime": 5,
+      "text": "Start in basic position. Feet together, shoulders relaxed, maintain good posture.",
+      "type": "instruction"
+    },
+    {
+      "id": "leader-2",
+      "startTime": 5,
+      "endTime": 12,
+      "text": "Step left foot to the side (count 1). Weight on left foot, slight hip movement.",
+      "type": "technique"
+    },
+    {
+      "id": "leader-3",
+      "startTime": 12,
+      "endTime": 18,
+      "text": "Bring right foot to meet left (count 2). Small step, keep rhythm steady.",
+      "type": "timing"
+    },
+    {
+      "id": "leader-4",
+      "startTime": 18,
+      "endTime": 25,
+      "text": "Step left foot to the side again (count 3). Emphasize the hip movement.",
+      "type": "technique"
+    },
+    {
+      "id": "leader-5",
+      "startTime": 25,
+      "endTime": 30,
+      "text": "Tap right foot next to left (count 4). Light tap, no weight transfer.",
+      "type": "timing"
+    },
+    {
+      "id": "leader-6",
+      "startTime": 30,
+      "endTime": 37,
+      "text": "Now mirror to the right side. Step right foot to the side (count 5).",
+      "type": "instruction"
+    },
+    {
+      "id": "leader-7",
+      "startTime": 37,
+      "endTime": 44,
+      "text": "Bring left foot to meet right (count 6). Keep the movement smooth.",
+      "type": "technique"
+    },
+    {
+      "id": "leader-8",
+      "startTime": 44,
+      "endTime": 50,
+      "text": "Step right foot to the side (count 7). Focus on leading with your frame.",
+      "type": "style"
+    },
+    {
+      "id": "leader-9",
+      "startTime": 50,
+      "endTime": 55,
+      "text": "Tap left foot next to right (count 8). Complete the basic pattern.",
+      "type": "timing"
+    },
+    {
+      "id": "leader-10",
+      "startTime": 55,
+      "endTime": 65,
+      "text": "Practice the complete 8-count pattern. Left-together-left-tap, right-together-right-tap.",
+      "type": "instruction"
+    }
+  ],
+  "followerNotes": [
+    {
+      "id": "follower-1",
+      "startTime": 0,
+      "endTime": 5,
+      "text": "Mirror the leader's position. Good posture, relaxed shoulders, ready to follow.",
+      "type": "instruction"
+    },
+    {
+      "id": "follower-2",
+      "startTime": 5,
+      "endTime": 12,
+      "text": "Step right foot to the side (count 1). Mirror the leader - when they go left, you go right.",
+      "type": "technique"
+    },
+    {
+      "id": "follower-3",
+      "startTime": 12,
+      "endTime": 18,
+      "text": "Bring left foot to meet right (count 2). Follow the rhythm, let hips move naturally.",
+      "type": "timing"
+    },
+    {
+      "id": "follower-4",
+      "startTime": 18,
+      "endTime": 25,
+      "text": "Step right foot to the side again (count 3). Feel the connection with your partner.",
+      "type": "technique"
+    },
+    {
+      "id": "follower-5",
+      "startTime": 25,
+      "endTime": 30,
+      "text": "Tap left foot next to right (count 4). Light and quick, maintain balance.",
+      "type": "timing"
+    },
+    {
+      "id": "follower-6",
+      "startTime": 30,
+      "endTime": 37,
+      "text": "Mirror to the left side. Step left foot to the side (count 5).",
+      "type": "instruction"
+    },
+    {
+      "id": "follower-7",
+      "startTime": 37,
+      "endTime": 44,
+      "text": "Bring right foot to meet left (count 6). Stay connected to the leader's frame.",
+      "type": "technique"
+    },
+    {
+      "id": "follower-8",
+      "startTime": 44,
+      "endTime": 50,
+      "text": "Step left foot to the side (count 7). Let the leader guide the movement.",
+      "type": "style"
+    },
+    {
+      "id": "follower-9",
+      "startTime": 50,
+      "endTime": 55,
+      "text": "Tap right foot next to left (count 8). Finish the pattern with grace.",
+      "type": "timing"
+    },
+    {
+      "id": "follower-10",
+      "startTime": 55,
+      "endTime": 65,
+      "text": "Practice the mirror pattern. Right-together-right-tap, left-together-left-tap.",
+      "type": "instruction"
+    }
+  ],
+  "breakpoints": [
+    {
+      "id": "bp1",
+      "startTime": 5,
+      "endTime": 5,
+      "label": "First step breakdown"
+    },
+    {
+      "id": "bp2",
+      "startTime": 25,
+      "endTime": 25,
+      "label": "Complete left side"
+    },
+    {
+      "id": "bp3",
+      "startTime": 50,
+      "endTime": 50,
+      "label": "Complete right side"
+    }
+  ]
+}
