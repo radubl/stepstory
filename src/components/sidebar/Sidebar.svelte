@@ -5,16 +5,16 @@
   import { onMount } from 'svelte';
   import { getDanceStyleSlug, getPlaylistSlug } from '$lib/utils/slugs';
   
-  let { isExpanded = true } = $props();
+  let { isExpanded = false } = $props();
   let expandedState = $state(isExpanded);
-  
-  // Sync with prop changes and initialize as expanded
+
+  // Sync with prop changes and initialize as collapsed
   $effect(() => {
     expandedState = isExpanded;
   });
-  
-  // Initialize as expanded
-  expandedState = true;
+
+  // Initialize as collapsed
+  expandedState = false;
   
   function toggleSidebar() {
     expandedState = !expandedState;

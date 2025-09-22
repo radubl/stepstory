@@ -499,11 +499,16 @@
 			<div style="margin-bottom: 12px; padding: 10px 0;">
 				<div
 					id="video-timeline"
-					style="position: relative; height: 2px; background: rgba(255, 255, 255, 0); cursor: pointer; user-select: none; padding: 10px 0; margin: -10px 0;"
+					style="position: relative; height: 22px; background: transparent; cursor: pointer; user-select: none; width: 100%;"
 					on:mousedown={handleTimelineMouseDown}
 					on:mousemove={handleTimelineMouseMove}
 					on:mouseleave={handleProgressBarLeave}
 				>
+					<!-- Timeline track background -->
+					<div
+						style="position: absolute; top: 50%; transform: translateY(-50%); left: 0; right: 0; height: 2px; background: rgba(255, 255, 255, 0.1);"
+					></div>
+
 					<!-- Buffered progress -->
 					<div
 						style="position: absolute; top: 50%; transform: translateY(-50%); left: 0; height: 2px; background: rgba(255, 255, 255, 0.3); width: {getBufferedPercentage()}%;"

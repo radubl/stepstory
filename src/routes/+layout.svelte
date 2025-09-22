@@ -12,36 +12,40 @@
   let { children, data } = $props();
   
   let menuOpen = $state(false);
-  let showSidebar = $state(true);
-  
+  let showSidebar = $state(false);
+
   function toggleMenu() {
     menuOpen = !menuOpen;
   }
-  
+
   function closeMenu() {
     menuOpen = false;
   }
-  
+
   function isActivePath(path: string): boolean {
     if (path === '/') {
       return $page.url.pathname === '/';
     }
     return $page.url.pathname.startsWith(path);
   }
-  
+
   // Handle responsive sidebar based on screen size
   $effect(() => {
     if (typeof window !== 'undefined') {
-      // Set initial state based on screen size
-      showSidebar = window.innerWidth >= 768;
-      
-      // Handle window resize
+      // Set initial state based on screen size - start collapsed on all screen sizes
+      showSidebar = false;
+
+      // Handle window resize - keep sidebar collapsed unless manually toggled
       const handleResize = () => {
-        showSidebar = window.innerWidth >= 768;
+        // On mobile, always collapse sidebar for UX
+        if (window.innerWidth < 768) {
+          showSidebar = false;
+        }
+        // On desktop, maintain current state (don't auto-expand)
       };
-      
+
       window.addEventListener('resize', handleResize);
-      
+
       // Clean up event listener
       return () => {
         window.removeEventListener('resize', handleResize);
@@ -161,7 +165,7 @@
   <!-- Mobile sidebar trigger -->
   <SidebarTrigger showSidebar={showSidebar} />
   
-  <main class="content-area mt-[80px] min-h-[calc(100vh-80px)] w-full transition-all duration-300 overflow-x-hidden">
+  <main class="content-area mt-[80px] min-h-[calc(100vh-80px)] w-full transition-all duration-300 overflow-x-hidden {showSidebar ? 'sidebar-expanded' : 'sidebar-collapsed'}">
     <div class="breadcrumb-container px-6 md:px-10 lg:px-16">
       <div class="breadcrumbs-nav">
         <div class="breadcrumbs-content">
@@ -244,7 +248,7 @@
     {@render children()}
   </main>
   
-  <footer class="footer bg-gradient-to-b from-[#121212] to-[#2d2d2d] py-16 pt-16 pb-8 mt-16 border-t border-[#333333]/50 relative overflow-hidden after:content-[''] after:absolute after:inset-0 after:bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48ZyBmaWxsPSIjMjIyIiBmaWxsLW9wYWNpdHk9IjAuMTUiPjxwYXRoIGQ9Ik0wIDM4LjU5bDIuODMtMi44M2MxLjQxLTEuNDEgMy43LTEuNDEgNS4xMiAwTDkuOSAzNy43MmMxLjQxIDEuNDEgMS40MSAzLjcgMCA1LjEyTDcuMDcgNDUuNjhjLTEuNDEgMS40MS0zLjcgMS40MS01LjEyIDBMMCA0My43YzEuNDEtMS40MSAxLjQxLTMuNyAwLTUuMTJ6TTIwIDE4LjU5bDIuODMtMi44M2MxLjQxLTEuNDEgMy43LTEuNDEgNS4xMiAwTDI5LjkgMTcuNzJjMS40MSAxLjQxIDEuNDEgMy43IDAgNS4xMkwyNy4wNyAyNS42OGMtMS40MSAxLjQxLTMuNyAxLjQxLTUuMTIgMEwyMCAyMy43YzEuNDEtMS40MSAxLjQxLTMuNyAwLTUuMTJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] after:opacity-5 after:z-[-1]">
+  <footer class="footer bg-gradient-to-b from-[#121212] to-[#2d2d2d] py-16 pt-16 pb-8 mt-16 border-t border-[#333333]/50 relative overflow-hidden after:content-[''] after:absolute after:inset-0 after:bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48ZyBmaWxsPSIjMjIyIiBmaWxsLW9wYWNpdHk9IjAuMTUiPjxwYXRoIGQ9Ik0wIDM4LjU5bDIuODMtMi44M2MxLjQxLTEuNDEgMy43LTEuNDEgNS4xMiAwTDkuOSAzNy43MmMxLjQxIDEuNDEgMS40MSAzLjcgMCA1LjEyTDcuMDcgNDUuNjhjLTEuNDEgMS40MS0zLjcgMS40MS01LjEyIDBMMCA0My43YzEuNDEtMS40MSAxLjQxLTMuNyAwLTUuMTJ6TTIwIDE4LjU5bDIuODMtMi44M2MxLjQxLTEuNDEgMy43LTEuNDEgNS4xMiAwTDI5LjkgMTcuNzJjMS40MSAxLjQxIDEuNDEgMy43IDAgNS4xMkwyNy4wNyAyNS42OGMtMS40MSAxLjQxLTMuNyAxLjQxLTUuMTIgMEwyMCAyMy43YzEuNDEtMS40MSAxLjQxLTMuNyAwLTUuMTJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] after:opacity-5 after:z-[-1] {showSidebar ? 'sidebar-expanded' : 'sidebar-collapsed'}">
     <div class="container">
       <div class="grid md:grid-cols-4 grid-cols-1 gap-12 mb-12">
         <div class="md:col-span-2">
@@ -430,8 +434,15 @@
   
   /* Content Area */
   .content-area {
-    padding-left: 60px;
     transition: padding-left 0.3s ease;
+  }
+
+  .content-area.sidebar-collapsed {
+    padding-left: 60px;
+  }
+
+  .content-area.sidebar-expanded {
+    padding-left: 250px;
   }
   
   .breadcrumb-container {
@@ -512,34 +523,31 @@
     text-shadow: 0 0 8px rgba(187,134,252,0.3);
   }
   
-  @media (min-width: 768px) {
-    .content-area {
-      padding-left: 250px;
-    }
-  }
-  
   @media (max-width: 767px) {
-    .content-area {
+    .content-area.sidebar-collapsed,
+    .content-area.sidebar-expanded {
       padding-left: 0;
     }
   }
   
   .footer {
-    padding-left: 60px;
     transition: padding-left 0.3s ease;
     overflow-x: hidden;
     width: 100%;
     box-sizing: border-box;
   }
-  
-  @media (min-width: 768px) {
-    .footer {
-      padding-left: 250px;
-    }
+
+  .footer.sidebar-collapsed {
+    padding-left: 60px;
   }
-  
+
+  .footer.sidebar-expanded {
+    padding-left: 250px;
+  }
+
   @media (max-width: 767px) {
-    .footer {
+    .footer.sidebar-collapsed,
+    .footer.sidebar-expanded {
       padding-left: 0;
     }
   }
