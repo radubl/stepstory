@@ -2,16 +2,19 @@
 	import { onMount, onDestroy } from 'svelte';
 	import type { VideoBreakpoint } from '$lib/types';
 	import PlaybackSpeedSlider from './PlaybackSpeedSlider.svelte';
+	import VideoTimeline from '../video-timeline/VideoTimeline.svelte';
 	import { updateVideoTime, updateVideoDuration, videoState } from '$lib/stores/video-notes.svelte.ts';
+	import { videoControlsState } from '$lib/stores/video-controls.svelte.ts';
 
 	interface Props {
 		videoPath: string;
 		breakpoints?: VideoBreakpoint[];
 		autoPlay?: boolean;
 		enableNotesSync?: boolean;
+		showTimeline?: boolean;
 	}
 
-	let { videoPath, breakpoints = [], autoPlay = false, enableNotesSync = false }: Props = $props();
+	let { videoPath, breakpoints = [], autoPlay = false, enableNotesSync = false, showTimeline = false }: Props = $props();
 
 	// Video element reference
 	let videoElement: HTMLVideoElement;
@@ -82,6 +85,8 @@
 					if (enableNotesSync) {
 						updateVideoTime(currentTime);
 					}
+					// Update VideoControlsState
+					videoControlsState.updateCurrentTime(currentTime);
 				}
 
 				// Check for breakpoints
@@ -175,6 +180,9 @@
 			if (enableNotesSync) {
 				updateVideoDuration(duration);
 			}
+			// Update VideoControlsState
+			videoControlsState.updateDuration(duration);
+			videoControlsState.setVideoElement(videoElement);
 			// Initialize loop segment to full video
 			if (!loopSegment && duration > 0) {
 				loopSegment = { start: 0, end: duration };
@@ -185,15 +193,18 @@
 
 	function handlePlay() {
 		isPlaying = true;
+		videoControlsState.updatePlayingState(true);
 	}
 
 	function handlePause() {
 		isPlaying = false;
+		videoControlsState.updatePlayingState(false);
 	}
 
 	function handleProgress() {
 		if (videoElement) {
 			bufferedRanges = videoElement.buffered;
+			videoControlsState.updateBufferedRanges(videoElement.buffered);
 		}
 	}
 
@@ -201,6 +212,8 @@
 		if (videoElement) {
 			volume = videoElement.volume;
 			isMuted = videoElement.muted;
+			videoControlsState.updateVolume(volume);
+			videoControlsState.updateMutedState(isMuted);
 		}
 	}
 
@@ -256,6 +269,7 @@
 
 		videoElement.playbackRate = speed;
 		playbackRate = speed;
+		videoControlsState.updatePlaybackRate(speed);
 	}
 
 	function skip(seconds: number) {
@@ -569,7 +583,10 @@
 
 
 		<!-- Video Timeline Overlay -->
-		<div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0, 0, 0, 0.9); padding: 16px; z-index: 9999;">
+		{#if showTimeline}
+			<VideoTimeline position="overlay" />
+		{/if}
+		<!-- <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0, 0, 0, 0.9); padding: 16px; z-index: 9999;">
 			<!-- Timeline -->
 			<div style="margin-bottom: 12px; padding: 10px 0;">
 				<div
@@ -702,8 +719,7 @@
 					/>
 				</div>
 			{/if}
-		</div>
-	</div>
+		</div> -->
 </div>
 
 <style>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ActiveNote } from '$lib/types/video-notes';
 	import { seekToVideoTime } from '$lib/stores/video-notes.svelte.ts';
+	import { videoControlsState } from '$lib/stores/video-controls.svelte.ts';
 
 	interface Props {
 		note: ActiveNote;
@@ -16,9 +17,23 @@
 		return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 	}
 
-	// Handle click to jump to note's start time
+	// Handle click to jump to note's start time and set up loop
 	function handleNoteClick() {
+		// Set loop segment to this note's timeframe
+		videoControlsState.loopSegment = {
+			start: note.startTime,
+			end: note.endTime
+		};
+		videoControlsState.isLooping = true;
+
+		// Seek to the note's start time
 		seekToVideoTime(note.startTime);
+
+		// Start playing if we have a video element
+		if (videoControlsState.videoElement) {
+			videoControlsState.videoElement.currentTime = note.startTime;
+			videoControlsState.videoElement.play();
+		}
 	}
 </script>
 
