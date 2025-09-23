@@ -120,11 +120,12 @@
 		flex-direction: column;
 		gap: 12px;
 		padding: 16px;
-		background: rgba(30, 30, 30, 0.9);
-		border-radius: 8px;
-		backdrop-filter: blur(8px);
-		border: 1px solid rgba(187, 134, 252, 0.2);
+		background: rgba(0, 0, 0, 0.8);
+		border-radius: 12px;
+		backdrop-filter: blur(12px);
+		border: none;
 		min-width: 280px;
+		box-shadow: 0 8px 24px rgba(0,0,0,0.5);
 	}
 
 	.speed-display {
@@ -132,16 +133,16 @@
 		justify-content: space-between;
 		align-items: center;
 		font-size: 14px;
-		color: #e1e1e1;
+		color: #ffffff;
 	}
 
 	.speed-label {
-		color: #b0b0b0;
+		color: rgba(255, 255, 255, 0.7);
 		font-weight: 500;
 	}
 
 	.speed-value {
-		color: #bb86fc;
+		color: #ffffff;
 		font-weight: 600;
 		font-size: 16px;
 	}
@@ -170,25 +171,25 @@
 		position: absolute;
 		width: 16px;
 		height: 16px;
-		background: #bb86fc;
+		background: #ffffff;
 		border-radius: 50%;
 		top: 50%;
 		transform: translate(-50%, -50%);
 		cursor: grab;
-		transition: all 0.15s ease;
-		box-shadow: 0 2px 8px rgba(187, 134, 252, 0.3);
-		border: 2px solid rgba(255, 255, 255, 0.2);
+		transition: all 0.3s ease;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+		border: none;
 	}
 
 	.slider-thumb:hover {
 		transform: translate(-50%, -50%) scale(1.2);
-		box-shadow: 0 4px 12px rgba(187, 134, 252, 0.5);
+		box-shadow: 0 4px 12px rgba(0,0,0,0.4);
 	}
 
 	.slider-thumb.dragging {
 		cursor: grabbing;
 		transform: translate(-50%, -50%) scale(1.3);
-		box-shadow: 0 6px 16px rgba(187, 134, 252, 0.6);
+		box-shadow: 0 6px 16px rgba(0,0,0,0.5);
 	}
 
 	.preset-speeds {
@@ -198,30 +199,31 @@
 	}
 
 	.preset-button {
-		background: rgba(255, 255, 255, 0.1);
-		border: 1px solid rgba(255, 255, 255, 0.2);
-		color: #e1e1e1;
-		padding: 4px 8px;
-		border-radius: 4px;
+		background: transparent;
+		border: none;
+		color: rgba(255, 255, 255, 0.7);
+		padding: 6px 12px;
+		border-radius: 12px;
 		font-size: 12px;
 		cursor: pointer;
-		transition: all 0.2s ease;
+		transition: all 0.3s ease;
 		font-weight: 500;
 	}
 
 	.preset-button:hover {
-		background: rgba(187, 134, 252, 0.1);
-		border-color: #bb86fc;
-		color: #bb86fc;
+		background: rgba(255, 255, 255, 0.1);
+		color: #ffffff;
+		transform: translateY(-1px) scale(1.05);
 	}
 
 	.preset-button.active {
-		background: #bb86fc;
-		color: white;
-		border-color: #bb86fc;
+		background: rgba(255, 255, 255, 0.2);
+		color: #ffffff;
+		transform: scale(1.05);
 	}
 
 	.preset-button.active:hover {
-		background: #9d46ff;
+		background: rgba(255, 255, 255, 0.25);
+		transform: translateY(-1px) scale(1.1);
 	}
 </style>

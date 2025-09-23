@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { videoControlsState } from '$lib/stores/video-controls.svelte.ts';
 	import PlaybackSpeedSlider from '../video-player/PlaybackSpeedSlider.svelte';
+	import VolumeSlider from '../video-player/VolumeSlider.svelte';
 	import { VideoThumbnailGenerator, type VideoThumbnail } from '$lib/utils/video-thumbnails';
 
 	interface Props {
@@ -14,6 +15,10 @@
 	let thumbnailGenerator: VideoThumbnailGenerator | null = null;
 	let isGeneratingThumbnails = $state(false);
 	let hoverThumbnail: VideoThumbnail | null = $state(null);
+
+	// Volume slider state
+	let showVolumeSlider = $state(false);
+	let volumeHoverTimeout: number;
 
 	// Timeline drag handling
 	function handleTimelineMouseDown(e: MouseEvent) {
@@ -104,6 +109,55 @@
 		videoControlsState.toggleSpeedControl();
 	}
 
+	// Volume slider functions
+	function handleVolumeMouseEnter() {
+		clearTimeout(volumeHoverTimeout);
+		showVolumeSlider = true;
+	}
+
+	function handleVolumeMouseLeave() {
+		volumeHoverTimeout = setTimeout(() => {
+			showVolumeSlider = false;
+		}, 300); // Small delay to allow moving to slider
+	}
+
+	function handleVolumeSliderEnter() {
+		clearTimeout(volumeHoverTimeout);
+	}
+
+	function handleVolumeSliderLeave() {
+		showVolumeSlider = false;
+	}
+
+	// Handle click outside and Esc key to close speed popup
+	$effect(() => {
+		if (!videoControlsState.showSpeedControl) return;
+
+		const handleClickOutside = (e: MouseEvent) => {
+			const speedPopup = document.querySelector('.speed-control-overlay');
+			const speedButton = document.querySelector('.speed-display');
+
+			if (speedPopup && !speedPopup.contains(e.target as Node) &&
+				speedButton && !speedButton.contains(e.target as Node)) {
+				videoControlsState.showSpeedControl = false;
+			}
+		};
+
+		const handleEscKey = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') {
+				videoControlsState.showSpeedControl = false;
+			}
+		};
+
+		document.addEventListener('click', handleClickOutside);
+		document.addEventListener('keydown', handleEscKey);
+
+		return () => {
+			document.removeEventListener('click', handleClickOutside);
+			document.removeEventListener('keydown', handleEscKey);
+		};
+	});
+
 	// Generate thumbnails when video is ready
 	$effect(() => {
 		if (videoControlsState.videoElement && videoControlsState.duration > 0 && thumbnails.length === 0) {
@@ -127,16 +181,111 @@
 </script>
 
 <div style="position: {position === 'footer' ? 'fixed' : 'absolute'}; bottom: 0; left: 0; right: 0; background: rgba(0, 0, 0, 0.9); padding: 16px; z-index: 9999;">
-	<!-- Thumbnail Timeline -->
-	<div style="margin-bottom: 12px; padding: 10px 0;">
-		<div
-			id="video-timeline"
-			class="video-timeline-active"
-			style="position: relative; height: 40px; cursor: pointer; user-select: none; width: 100%; background: rgba(255,255,255,0.05); border-radius: 8px; overflow: hidden;"
-			on:mousedown={handleTimelineMouseDown}
-			on:mousemove={handleTimelineMouseMove}
-			on:mouseleave={handleProgressBarLeave}
+	<!-- Single Row Controls -->
+	<div style="display: flex; align-items: center; gap: 16px;">
+		<!-- Play/Pause Button -->
+		<button
+			class="control-button"
+			style="width: 40px; height: 40px; background: transparent; border: none; border-radius: 12px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;"
+			on:mouseenter={(e) => {
+				e.target.style.transform = 'translateY(-1px) scale(1.1)';
+			}}
+			on:mouseleave={(e) => {
+				e.target.style.transform = 'translateY(0) scale(1)';
+			}}
+			on:click={() => videoControlsState.togglePlay()}
+			title={videoControlsState.isPlaying ? 'Pause' : 'Play'}
 		>
+			{#if videoControlsState.isPlaying}
+				<!-- Pause icon -->
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<rect x="6" y="4" width="4" height="16"></rect>
+					<rect x="14" y="4" width="4" height="16"></rect>
+				</svg>
+			{:else}
+				<!-- Play icon -->
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<polygon points="5,3 19,12 5,21"></polygon>
+				</svg>
+			{/if}
+		</button>
+
+		<!-- Volume Button with Slider -->
+		<div style="position: relative;">
+			<button
+				class="control-button volume-button"
+				style="width: 40px; height: 40px; background: transparent; border: none; border-radius: 12px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;"
+				on:mouseenter={(e) => {
+					e.target.style.transform = 'translateY(-1px) scale(1.1)';
+					handleVolumeMouseEnter();
+				}}
+				on:mouseleave={(e) => {
+					e.target.style.transform = 'translateY(0) scale(1)';
+					handleVolumeMouseLeave();
+				}}
+				on:click={() => {
+					const newMutedState = !videoControlsState.isMuted;
+					videoControlsState.updateMutedState(newMutedState);
+					if (videoControlsState.videoElement) {
+						videoControlsState.videoElement.muted = newMutedState;
+					}
+				}}
+				title={videoControlsState.isMuted ? 'Unmute' : 'Mute'}
+			>
+			{#if videoControlsState.isMuted}
+				<!-- Muted icon -->
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<polygon points="11,5 6,9 2,9 2,15 6,15 11,19"></polygon>
+					<line x1="23" y1="9" x2="17" y2="15"></line>
+					<line x1="17" y1="9" x2="23" y2="15"></line>
+				</svg>
+			{:else}
+				<!-- Volume icon -->
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<polygon points="11,5 6,9 2,9 2,15 6,15 11,19"></polygon>
+					<path d="M19.07,4.93a10,10,0,0,1,0,14.14M15.54,8.46a5,5,0,0,1,0,7.07"></path>
+				</svg>
+			{/if}
+			</button>
+
+			<!-- Volume Slider Overlay -->
+			{#if showVolumeSlider}
+				<div
+					class="volume-control-overlay"
+					style="position: absolute; bottom: 100%; left: 50%; transform: translateX(calc(-50% - 8px)); margin-bottom: 8px; z-index: 10000;"
+					on:mouseenter={handleVolumeSliderEnter}
+					on:mouseleave={handleVolumeSliderLeave}
+				>
+					<VolumeSlider
+						volume={videoControlsState.volume}
+						isMuted={videoControlsState.isMuted}
+						onVolumeChange={(vol) => {
+							videoControlsState.updateVolume(vol);
+							if (videoControlsState.videoElement) {
+								videoControlsState.videoElement.volume = vol;
+							}
+						}}
+						onMutedChange={(muted) => {
+							videoControlsState.updateMutedState(muted);
+							if (videoControlsState.videoElement) {
+								videoControlsState.videoElement.muted = muted;
+							}
+						}}
+					/>
+				</div>
+			{/if}
+		</div>
+
+		<!-- Timeline Container (Flexible) -->
+		<div style="flex: 1; min-width: 200px;">
+			<div
+				id="video-timeline"
+				class="video-timeline-active"
+				style="position: relative; height: 40px; cursor: pointer; user-select: none; width: 100%; background: linear-gradient(145deg, rgba(0,0,0,0.4), rgba(0,0,0,0.2)); border-radius: 12px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.6), 0 1px 2px rgba(255,255,255,0.1);"
+				on:mousedown={handleTimelineMouseDown}
+				on:mousemove={handleTimelineMouseMove}
+				on:mouseleave={handleProgressBarLeave}
+			>
 			<!-- Thumbnail Strip -->
 			{#if thumbnails.length > 0}
 				<div style="position: absolute; top: 0; left: 0; right: 0; height: 100%; display: flex;">
@@ -238,58 +387,86 @@
 				{/if}
 			</div>
 		</div>
-
-		<!-- Thumbnail loading indicator -->
-		{#if isGeneratingThumbnails}
-			<div style="text-align: center; color: rgba(255,255,255,0.6); font-size: 12px; margin-top: 8px;">
-				Generating timeline thumbnails...
-			</div>
-		{/if}
 	</div>
 
-	<!-- Time info and controls -->
-	<div style="display: flex; justify-content: space-between; align-items: center; color: rgba(255, 255, 255, 0.8); font-size: 14px;">
-		<div style="font-family: monospace;">
-			{videoControlsState.formatTime(videoControlsState.currentTime)} / {videoControlsState.formatTime(videoControlsState.duration)}
-		</div>
+		<!-- Speed Controls Group -->
 		<div style="display: flex; align-items: center; gap: 4px;">
-			<!-- Decrease speed arrow -->
+			<!-- Decrease speed -->
 			<button
-				style="background: rgba(187, 134, 252, 0.1); border: 1px solid rgba(187, 134, 252, 0.3); color: #bb86fc; padding: 4px 6px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;"
-				on:mouseenter={(e) => e.target.style.background = 'rgba(187, 134, 252, 0.2)'}
-				on:mouseleave={(e) => e.target.style.background = 'rgba(187, 134, 252, 0.1)'}
+				class="control-button"
+				style="width: 40px; height: 40px; background: transparent; border: none; border-radius: 12px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;"
+				on:mouseenter={(e) => {
+					e.target.style.transform = 'translateY(-1px) scale(1.1)';
+				}}
+				on:mouseleave={(e) => {
+					e.target.style.transform = 'translateY(0) scale(1)';
+				}}
 				on:click={() => videoControlsState.adjustSpeed(-0.25)}
 				title="Decrease speed"
 			>
-				<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 					<polyline points="15,18 9,12 15,6"></polyline>
 				</svg>
 			</button>
 
-			<!-- Speed display button -->
+			<!-- Speed display -->
 			<button
-				class="speed-control-button"
-				style="background: rgba(187, 134, 252, 0.1); border: 1px solid rgba(187, 134, 252, 0.3); color: #bb86fc; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: all 0.2s ease; min-width: 48px;"
-				on:mouseenter={(e) => e.target.style.background = 'rgba(187, 134, 252, 0.2)'}
-				on:mouseleave={(e) => e.target.style.background = 'rgba(187, 134, 252, 0.1)'}
+				class="control-button speed-display"
+				style="min-width: 56px; height: 40px; background: transparent; border: none; border-radius: 12px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; font-size: 12px; font-family: monospace;"
+				on:mouseenter={(e) => {
+					e.target.style.transform = 'translateY(-1px) scale(1.05)';
+				}}
+				on:mouseleave={(e) => {
+					e.target.style.transform = 'translateY(0) scale(1)';
+				}}
 				on:click={handleSpeedControlClick}
+				title="Speed control"
 			>
 				{videoControlsState.playbackRate.toFixed(2)}×
 			</button>
 
-			<!-- Increase speed arrow -->
+			<!-- Increase speed -->
 			<button
-				style="background: rgba(187, 134, 252, 0.1); border: 1px solid rgba(187, 134, 252, 0.3); color: #bb86fc; padding: 4px 6px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;"
-				on:mouseenter={(e) => e.target.style.background = 'rgba(187, 134, 252, 0.2)'}
-				on:mouseleave={(e) => e.target.style.background = 'rgba(187, 134, 252, 0.1)'}
+				class="control-button"
+				style="width: 40px; height: 40px; background: transparent; border: none; border-radius: 12px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;"
+				on:mouseenter={(e) => {
+					e.target.style.transform = 'translateY(-1px) scale(1.1)';
+				}}
+				on:mouseleave={(e) => {
+					e.target.style.transform = 'translateY(0) scale(1)';
+				}}
 				on:click={() => videoControlsState.adjustSpeed(0.25)}
 				title="Increase speed"
 			>
-				<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 					<polyline points="9,18 15,12 9,6"></polyline>
 				</svg>
 			</button>
 		</div>
+
+		<!-- Fullscreen Button -->
+		<button
+			class="control-button"
+			style="width: 40px; height: 40px; background: transparent; border: none; border-radius: 12px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;"
+			on:mouseenter={(e) => {
+				e.target.style.transform = 'translateY(-1px) scale(1.1)';
+			}}
+			on:mouseleave={(e) => {
+				e.target.style.transform = 'translateY(0) scale(1)';
+			}}
+			on:click={() => {
+				if (document.fullscreenElement) {
+					document.exitFullscreen();
+				} else {
+					document.documentElement.requestFullscreen();
+				}
+			}}
+			title="Toggle fullscreen"
+		>
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+			</svg>
+		</button>
 	</div>
 
 	<!-- Speed Control Overlay -->
@@ -299,6 +476,13 @@
 				playbackRate={videoControlsState.playbackRate}
 				onSpeedChange={videoControlsState.updatePlaybackRate.bind(videoControlsState)}
 			/>
+		</div>
+	{/if}
+
+	<!-- Thumbnail loading indicator -->
+	{#if isGeneratingThumbnails}
+		<div style="text-align: center; color: rgba(255,255,255,0.6); font-size: 12px; margin-top: 8px;">
+			Generating timeline thumbnails...
 		</div>
 	{/if}
 </div>
